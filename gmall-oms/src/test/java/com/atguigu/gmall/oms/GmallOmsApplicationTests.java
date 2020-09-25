@@ -8,6 +8,7 @@ class GmallOmsApplicationTests {
 
 	@Test
 	void contextLoads() {
+
 	}
 
 }

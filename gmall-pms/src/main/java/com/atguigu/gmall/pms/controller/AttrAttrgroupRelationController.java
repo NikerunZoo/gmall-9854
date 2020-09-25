@@ -29,7 +29,9 @@ import com.atguigu.gmall.pms.service.AttrAttrgroupRelationService;
 @Api(tags = "属性&属性分组关联 管理")
 @RestController
 @RequestMapping("pms/attrattrgrouprelation")
-public class AttrAttrgroupRelationController {
+public class
+
+AttrAttrgroupRelationController {
     @Autowired
     private AttrAttrgroupRelationService attrAttrgroupRelationService;
 

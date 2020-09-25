@@ -8,6 +8,7 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 /**
  * @author NikerunZoo
  * @date 2020/7/19 0019 9:30
+ * 放行所有请求
  */
 @Configuration
 public class SecurityConfig extends WebSecurityConfigurerAdapter{
