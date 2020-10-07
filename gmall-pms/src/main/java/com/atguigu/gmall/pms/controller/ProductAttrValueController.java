@@ -1,19 +1,19 @@
 package com.atguigu.gmall.pms.controller;
 
 import java.util.Arrays;
-import java.util.Map;
+import java.util.List;
 
 
 import com.atguigu.core.bean.PageVo;
 import com.atguigu.core.bean.QueryCondition;
 import com.atguigu.core.bean.Resp;
+import com.atguigu.gmall.pms.entity.ProductAttrValueEntity;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import com.atguigu.gmall.pms.entity.ProductAttrValueEntity;
 import com.atguigu.gmall.pms.service.ProductAttrValueService;
 
 
@@ -33,6 +33,13 @@ public class ProductAttrValueController {
     @Autowired
     private ProductAttrValueService productAttrValueService;
 
+    @GetMapping("{spuId}")
+    public Resp<List<ProductAttrValueEntity>> querySearchAttrValueBySpuId(@PathVariable("spuId")Long spuId){
+
+        List<ProductAttrValueEntity> searchAttrValues = this.productAttrValueService.querySearchAttrValueBySpuId(spuId);
+
+        return Resp.ok(searchAttrValues);
+    }
     /**
      * 列表
      */

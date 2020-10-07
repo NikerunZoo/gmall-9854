@@ -3,21 +3,23 @@ package com.atguigu.gmall.pms.service.impl;
 import com.atguigu.gmall.pms.dao.*;
 import com.atguigu.gmall.pms.entity.*;
 import com.atguigu.gmall.pms.feign.GmallSmsClient;
-import com.atguigu.gmall.pms.service.ProductAttrValueService;
-import com.atguigu.gmall.pms.service.SkuImagesService;
-import com.atguigu.gmall.pms.service.SkuSaleAttrValueService;
+import com.atguigu.gmall.pms.service.*;
 import com.atguigu.gmall.pms.vo.BaseAttrVo;
 import com.atguigu.gmall.pms.vo.SkuInfoVo;
 import com.atguigu.gmall.pms.vo.SpuInfoVo;
 import com.atguigu.gmall.sms.vo.SkuSaleVo;
+import io.seata.spring.annotation.GlobalTransactional;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
@@ -27,7 +29,8 @@ import com.atguigu.core.bean.PageVo;
 import com.atguigu.core.bean.Query;
 import com.atguigu.core.bean.QueryCondition;
 
-import com.atguigu.gmall.pms.service.SpuInfoService;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
 
@@ -46,6 +49,13 @@ public class SpuInfoServiceImpl extends ServiceImpl<SpuInfoDao, SpuInfoEntity> i
     private SkuSaleAttrValueService skuSaleAttrValueService;
     @Autowired
     private GmallSmsClient gmallSmsClient;
+    @Autowired
+    private SpuInfoDescService spuInfoDescService;
+    @Autowired
+    private AmqpTemplate amqpTemplate;
+
+    @Value("${item.rabbitmq.exchange}")
+    private String EXCHANGE_NAME;
     @Override
     public PageVo queryPage(QueryCondition params) {
         IPage<SpuInfoEntity> page = this.page(
@@ -79,34 +89,33 @@ public class SpuInfoServiceImpl extends ServiceImpl<SpuInfoDao, SpuInfoEntity> i
     }
 
     @Override
+    @GlobalTransactional
     public void bigSave(SpuInfoVo spuInfoVo) {
         //1.保存spu相关的3张表
         //1.1保存pms_spu_info信息
-        spuInfoVo.setCreateTime(new Date());
-        spuInfoVo.setUpdateTime(spuInfoVo.getCreateTime());
-        this.save(spuInfoVo);
-        Long spuId = spuInfoVo.getId();
+        Long spuId = saveSpuInfo(spuInfoVo);
 
         //1.2保存pms_spu_info_desc
-        List<String> spuImages = spuInfoVo.getSpuImages();
+        this.spuInfoDescService.saveSpuInfoDesc(spuInfoVo, spuId);
 
-        if (!CollectionUtils.isEmpty(spuImages)){
-            SpuInfoDescEntity descEntity = new SpuInfoDescEntity();
-            descEntity.setSpuId(spuId);
-            descEntity.setDecript(StringUtils.join(spuImages,","));
-            this.descDao.insert(descEntity);
-        }
         //1.3保存pms_product_attr_value
-        List<BaseAttrVo> baseAttrs = spuInfoVo.getBaseAttrs();
-        if (!CollectionUtils.isEmpty(baseAttrs)){
-            List<ProductAttrValueEntity> attrValueEntities = baseAttrs.stream().map(baseAttrVo -> {
-                ProductAttrValueEntity attrValueEntity =  baseAttrVo;
-                attrValueEntity.setSpuId(spuId);
-                return attrValueEntity;
-            }).collect(Collectors.toList());
-            this.attrValueService.saveBatch(attrValueEntities);
-        }
+        saveBaseAttrValue(spuInfoVo, spuId);
+
         //2.保存sku相关的3张表
+        saveSkuAndSale(spuInfoVo, spuId);
+
+//        int i  = 1/0;
+
+        sendMsg("insert",spuId);
+
+    }
+    private void sendMsg(String type,Long spuId){
+
+        this.amqpTemplate.convertAndSend(EXCHANGE_NAME,"item."+type,spuId);
+
+    }
+
+    private void saveSkuAndSale(SpuInfoVo spuInfoVo, Long spuId) {
         List<SkuInfoVo> skus = spuInfoVo.getSkus();
         if (CollectionUtils.isEmpty(skus)){
             return;
@@ -154,6 +163,26 @@ public class SpuInfoServiceImpl extends ServiceImpl<SpuInfoDao, SpuInfoEntity> i
             this.gmallSmsClient.saveSale(skuSaleVo);
 
         });
+    }
+
+    private void saveBaseAttrValue(SpuInfoVo spuInfoVo, Long spuId) {
+        List<BaseAttrVo> baseAttrs = spuInfoVo.getBaseAttrs();
+        if (!CollectionUtils.isEmpty(baseAttrs)){
+            List<ProductAttrValueEntity> attrValueEntities = baseAttrs.stream().map(baseAttrVo -> {
+                ProductAttrValueEntity attrValueEntity =  baseAttrVo;
+                attrValueEntity.setSpuId(spuId);
+                return attrValueEntity;
+            }).collect(Collectors.toList());
+            this.attrValueService.saveBatch(attrValueEntities);
+        }
+    }
+
+
+    private Long saveSpuInfo(SpuInfoVo spuInfoVo) {
+        spuInfoVo.setCreateTime(new Date());
+        spuInfoVo.setUpdateTime(spuInfoVo.getCreateTime());
+        this.save(spuInfoVo);
+        return spuInfoVo.getId();
     }
 
 }

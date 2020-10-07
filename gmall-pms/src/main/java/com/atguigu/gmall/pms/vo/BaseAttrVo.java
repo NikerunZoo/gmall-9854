@@ -5,7 +5,6 @@ import lombok.Data;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.util.CollectionUtils;
 
-import java.util.Collection;
 import java.util.List;
 
 /**
