@@ -1,6 +1,8 @@
 package com.atguigu.gmall.pms.service.impl;
 
 import com.atguigu.gmall.pms.entity.CategoryEntity;
+import com.atguigu.gmall.pms.vo.CategoryVO;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
@@ -12,9 +14,14 @@ import com.atguigu.core.bean.QueryCondition;
 import com.atguigu.gmall.pms.dao.CategoryDao;
 import com.atguigu.gmall.pms.service.CategoryService;
 
+import java.util.List;
+
 
 @Service("categoryService")
 public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity> implements CategoryService {
+
+    @Autowired
+    private CategoryDao categoryDao;
 
     @Override
     public PageVo queryPage(QueryCondition params) {
@@ -24,6 +31,14 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
         );
 
         return new PageVo(page);
+    }
+
+    @Override
+    public List<CategoryVO> querySubCategories(Long pid) {
+
+
+
+        return this.categoryDao.querySubCategories(pid);
     }
 
 }

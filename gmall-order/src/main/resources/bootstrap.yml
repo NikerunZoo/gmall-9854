@@ -1,0 +1,17 @@
+spring:
+  application:
+    name: order-service
+  cloud:
+    nacos:
+      config:
+        server-addr: 127.0.0.1:8848
+  rabbitmq:
+    host: 192.168.1.107
+    virtual-host: /fengge
+    username: fengge
+    password: fengge
+
+gmall:
+  jwt:
+    pubKeyPath: F:\\IdeaProjects\\rsa\\rsa.pub # 公钥地址
+    cookieName: GMALL_TOKEN

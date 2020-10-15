@@ -7,11 +7,14 @@ import java.util.List;
 import com.atguigu.core.bean.PageVo;
 import com.atguigu.core.bean.QueryCondition;
 import com.atguigu.core.bean.Resp;
+import com.atguigu.gmall.pms.entity.SkuImagesEntity;
 import com.atguigu.gmall.pms.entity.SkuInfoEntity;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
@@ -31,6 +34,8 @@ import com.atguigu.gmall.pms.service.SkuInfoService;
 public class SkuInfoController {
     @Autowired
     private SkuInfoService skuInfoService;
+
+
 
     @GetMapping("{spuId}")
     public Resp<List<SkuInfoEntity>> queryBySpuId(@PathVariable("spuId")Long spuId){
@@ -84,7 +89,6 @@ public class SkuInfoController {
     @PreAuthorize("hasAuthority('pms:skuinfo:update')")
     public Resp<Object> update(@RequestBody SkuInfoEntity skuInfo){
 		skuInfoService.updateById(skuInfo);
-
         return Resp.ok(null);
     }
 

@@ -1,11 +1,13 @@
 package com.atguigu.gmall.pms.controller;
 
 import java.util.Arrays;
+import java.util.List;
 
 
 import com.atguigu.core.bean.PageVo;
 import com.atguigu.core.bean.QueryCondition;
 import com.atguigu.core.bean.Resp;
+import com.atguigu.gmall.pms.entity.SkuImagesEntity;
 import com.atguigu.gmall.pms.entity.SpuImagesEntity;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -31,6 +33,9 @@ import com.atguigu.gmall.pms.service.SpuImagesService;
 public class SpuImagesController {
     @Autowired
     private SpuImagesService spuImagesService;
+
+
+
 
     /**
      * 列表
